@@ -26,7 +26,7 @@ class MarkAttendanceViewModel @Inject constructor(
             try {
                 atbRepository.insertAttendance(attendanceLog)
                 _state.value = MarkAttendanceScreenState()
-            } catch (e: SQLiteConstraintException) {
+            } catch (e: SQLiteConstraintException) { //todo move try catch check to repository
                 _state.value =
                     MarkAttendanceScreenState(error = "${attendanceLog.barcode} is invalid first register then mark attendance :(")
             }
