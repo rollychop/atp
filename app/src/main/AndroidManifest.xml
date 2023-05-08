@@ -12,12 +12,12 @@
         android:name=".AtpApp"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Atp"
+        android:theme="@style/Theme.Atb"
         tools:targetApi="31">
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Atp">
+            android:theme="@style/Theme.Atb">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'dagger.hilt.android.plugin'
+    id 'kotlin-parcelize'
     id 'com.google.devtools.ksp' version '1.7.20-1.0.8'
 }
 kotlin {
@@ -16,11 +17,11 @@ kotlin {
     }
 }
 android {
-    namespace 'com.example.atp'
+    namespace 'com.example.atb'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.example.atp"
+        applicationId "com.example.atb"
         minSdk 27
         targetSdk 33
         versionCode 1
@@ -78,6 +79,7 @@ dependencies {
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
 
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
     // Compose dependencies
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose"
