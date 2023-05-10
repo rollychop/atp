@@ -1,40 +1,35 @@
 package com.example.atb.presentation.register_student_screen
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Subject
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -42,72 +37,93 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.atb.domain.model.Student
+import com.example.atb.presentation.component.DialogItem
+import com.example.atb.presentation.util.WithTopAppBar
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Destination
 fun RegisterStudentScreen(
     vm: RegisterStudentViewModel = hiltViewModel(),
-    navigator: DestinationsNavigator? = null
+    navigator: DestinationsNavigator
 ) {
-    Scaffold(
-        topBar = {
-            Row(
-                modifier = Modifier.padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = {
-                    navigator?.popBackStack()
-                }) {
-                    Icon(
-                        imageVector = Icons.Rounded.ArrowBack,
-                        contentDescription = "Go Back"
-                    )
-                }
-                Text(
-                    text = "Register Student",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
+    RegisterSection(vm.state.value, vm::onChange, navigator::popBackStack)
 
-        }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RegisterSection(
+    state: RegisterStudentScreenState,
+    onEvent: (Action) -> Unit,
+    onBackPressed: () -> Unit
+) {
+    WithTopAppBar(
+        onLeftIconClick = onBackPressed,
+        title = "Register Student"
     ) {
         Column(
             modifier = Modifier
-                .padding(it)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            var name by remember {
-                mutableStateOf("")
-            }
-            var enrollNum by remember {
-                mutableStateOf("")
-            }
-            var barcode by remember {
-                mutableStateOf("")
-            }
-            var course by remember {
-                mutableStateOf("")
-            }
-            var sem by remember {
-                mutableStateOf("")
-            }
-            var email by remember {
-                mutableStateOf("")
-            }
 
             val focusManager = LocalFocusManager.current
-
             OutlinedTextField(
-                value = name,
+                value = state.enrollNum,
+                onValueChange = { inputEnrollNum ->
+                    onEvent(Action.EnrollmentNumber(inputEnrollNum))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = {
+                    Text(text = "Enrollment Number")
+                },
+                singleLine = true,
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.Numbers,
+                        contentDescription = "Enrollment Number"
+                    )
+                },
+                trailingIcon = {
+                    if (state.verified) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Enrollment number is Verified",
+                            tint = Color.Green
+                        )
+                    } else if (state.verifying) {
+                        CircularProgressIndicator()
+                    } else {
+                        TextButton(onClick = {
+                            onEvent(Action.Verify(state.enrollNum))
+                        }) {
+                            Text(text = "Verify")
+                        }
+                    }
+                },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Words,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                ),
+                isError = state.textFieldErrorState.enrollNum.isNotEmpty(),
+                supportingText = {
+                    if (state.textFieldErrorState.enrollNum.isNotEmpty())
+                        Text(text = state.textFieldErrorState.enrollNum)
+                }
+            )
+            OutlinedTextField(
+                value = state.name,
                 onValueChange = { inputName ->
-                    name = inputName
+                    onEvent(Action.Name(inputName))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = {
@@ -128,77 +144,20 @@ fun RegisterStudentScreen(
                 ),
                 keyboardActions = KeyboardActions(
                     onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
-
-            )
-
-
-            OutlinedTextField(
-                value = enrollNum,
-                onValueChange = { inputEnrollNum ->
-                    enrollNum = inputEnrollNum
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = {
-                    Text(text = "Enrollment Number")
-                },
-                singleLine = true,
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.Numbers,
-                        contentDescription = "Enrollment Number"
-                    )
-                },
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    autoCorrect = false,
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
                 ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+                isError = state.textFieldErrorState.name.isNotEmpty(),
+                supportingText = {
+                    if (state.textFieldErrorState.name.isNotEmpty())
+                        Text(text = state.textFieldErrorState.name)
+                }
+
+
             )
 
-
-
             OutlinedTextField(
-                value = barcode,
-                onValueChange = { inputBarcode ->
-                    barcode = inputBarcode
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = {
-                    Text(text = "Barcode")
-                },
-                singleLine = true,
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.QrCode,
-                        contentDescription = "Barcode"
-                    )
-                },
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Rounded.QrCodeScanner,
-                        contentDescription = "Qr Scanner"
-                    )
-                },
-                keyboardOptions = KeyboardOptions(
-                    autoCorrect = false,
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
-            )
-
-
-            OutlinedTextField(
-                value = course,
+                value = state.course,
                 onValueChange = { inputCourse ->
-                    course = inputCourse
+                    onEvent(Action.Course(inputCourse))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = {
@@ -219,14 +178,18 @@ fun RegisterStudentScreen(
                 ),
                 keyboardActions = KeyboardActions(
                     onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+                ), isError = state.textFieldErrorState.course.isNotEmpty(),
+                supportingText = {
+                    if (state.textFieldErrorState.course.isNotEmpty())
+                        Text(text = state.textFieldErrorState.course)
+                }
             )
 
 
             OutlinedTextField(
-                value = sem,
+                value = state.sem,
                 onValueChange = { inputSem ->
-                    sem = inputSem
+                    onEvent(Action.Semester(inputSem))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = {
@@ -246,14 +209,19 @@ fun RegisterStudentScreen(
                 ),
                 keyboardActions = KeyboardActions(
                     onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
+                ),
+                isError = state.textFieldErrorState.sem.isNotEmpty(),
+                supportingText = {
+                    if (state.textFieldErrorState.sem.isNotEmpty())
+                        Text(text = state.textFieldErrorState.sem)
+                }
             )
 
 
             OutlinedTextField(
-                value = email,
+                value = state.email,
                 onValueChange = { inputEmail ->
-                    email = inputEmail
+                    onEvent(Action.Email(inputEmail))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = {
@@ -269,91 +237,101 @@ fun RegisterStudentScreen(
                 keyboardOptions = KeyboardOptions(
                     autoCorrect = false,
                     keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                ),
+
+                isError = state.textFieldErrorState.email.isNotEmpty(),
+                supportingText = {
+                    if (state.textFieldErrorState.email.isNotEmpty())
+                        Text(text = state.textFieldErrorState.email)
+                }
+            )
+
+            OutlinedTextField(
+                value = state.barcode,
+                onValueChange = { inputBarcode ->
+                    onEvent(Action.Barcode(inputBarcode))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = {
+                    Text(text = "Barcode")
+                },
+                singleLine = true,
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Filled.QrCode,
+                        contentDescription = "Barcode"
+                    )
+                },
+                trailingIcon = {
+                    IconButton(onClick = { onEvent(Action.Scan) }) {
+                        Icon(
+                            imageVector = Icons.Rounded.QrCodeScanner,
+                            contentDescription = "Qr Scanner"
+                        )
+                    }
+                },
+                keyboardOptions = KeyboardOptions(
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Done
-                )
+                ), isError = state.textFieldErrorState.barcode.isNotEmpty(),
+                supportingText = {
+                    if (state.textFieldErrorState.barcode.isNotEmpty())
+                        Text(text = state.textFieldErrorState.barcode)
+                }
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 TextButton(onClick = {
-                    name = ""
-                    enrollNum = ""
-                    barcode = ""
-                    course = ""
-                    sem = ""
-                    email = ""
+                    onEvent(Action.ClearAll())
                 }) {
                     Text(text = "Clear")
                 }
-                val ctx = LocalContext.current
                 Button(onClick = {
-                    val isValid = validate(
-                        name, enrollNum, barcode, course, sem, email
-                    )
-                    if (isValid.first.not()) {
-                        Toast.makeText(ctx, isValid.second, Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    vm.register(
-                        Student(
-                            name, enrollNum, course, sem.toInt(), email, barcode.toInt()
-                        )
-                    )
-                    Toast.makeText(ctx, "Student Registered", Toast.LENGTH_SHORT).show()
-                    name = ""
-                    enrollNum = ""
-                    barcode = ""
-                    course = ""
-                    sem = ""
-                    email = ""
+                    onEvent(Action.Submit)
                     focusManager.clearFocus()
                 }) {
                     Text(text = "Register")
                 }
             }
+            if (state.success) {
+                DialogItem(
+                    title = "Registered Successfully", bodyText = """
+                                Name     : ${state.name}
+                                E Number : ${state.enrollNum}
+                                Course   : ${state.course}
+                                Barcode  : ${state.barcode}
+                                Email    : ${state.email}
+                            """.trimIndent()
+                ) {
+                    onEvent(Action.ClearAll())
+                }
+
+            }
+            if (state.error.isNotEmpty()) {
+                DialogItem(title = "Error", bodyText = state.error, isError = true) {
+                    onEvent(Action.ClearAll(state.copy(error = "")))
+                }
+            }
 
         }
     }
-
-}
-
-fun validate(
-    name: String,
-    enrollNum: String,
-    barcode: String,
-    course: String,
-    sem: String,
-    email: String
-): Pair<Boolean, String> {
-    return if (name.isEmpty()) false to "Enter Valid Name"
-    else if (name.length < 4) false to "Name must be at least 4 characters"
-    else if (enrollNum.isEmpty()) false to "Enrollment number is Empty"
-    else if (barcode.isEmpty()) false to "Barcode is Empty"
-    else if (barcode.any { it.isDigit().not() }) false to "Barcode must be a number"
-    else if (course.isEmpty()) false to "Course is Empty"
-    else if (sem.isEmpty()) false to "Semester is Empty"
-    else if (sem.all { it.isDigit().not() } || sem.toInt() !in 1..8) false to "Invalid Semester"
-    else if (email.matches(
-            Regex(
-                "[a-zA-Z0-9+._%\\-]{1,256}" +
-                        "@" +
-                        "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}" +
-                        "(" +
-                        "\\." +
-                        "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25}" +
-                        ")+"
-            )
-        ).not()
-    ) false to "Invalid Email"
-    else return (true to "")
-
-
 }
 
 
 @Preview
 @Composable
 fun Preview() {
-    RegisterStudentScreen()
+    RegisterSection(
+        RegisterStudentScreenState(
+            success = true
+        ),
+        {}, {})
 }
+

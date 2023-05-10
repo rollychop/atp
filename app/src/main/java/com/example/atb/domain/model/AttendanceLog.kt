@@ -36,7 +36,7 @@ data class AttendanceLog(
     val id: Int? = null,
     @TypeParceler<LocalDateTime, LocalDateTimeParceler>()
     val date: LocalDateTime,
-    val subject: String
+    val subject: String = ""
 
 ) : Parcelable
 

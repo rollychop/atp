@@ -12,7 +12,7 @@ import com.example.atb.domain.model.Student
         Student::class,
         AttendanceLog::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(AtbTypeConverter::class)

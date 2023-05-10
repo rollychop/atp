@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.atb.domain.model.AttendanceLog
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -29,13 +30,13 @@ import java.time.LocalDateTime
 @Composable
 @Destination
 fun AttendanceLogScreen(
-    state: AttendanceLogScreenState,
+    vm: AttendanceLogViewModel = hiltViewModel(),
     navigator: DestinationsNavigator
 ) {
     AttendanceLogSection(
-        isStudent = state.student != null,
+        isStudent = vm.state.value.student != null,
         onBackPressed = { navigator.popBackStack() },
-        attendanceLogs = state.attendanceLogs
+        attendanceLogs = vm.state.value.attendanceLogs
     )
 }
 

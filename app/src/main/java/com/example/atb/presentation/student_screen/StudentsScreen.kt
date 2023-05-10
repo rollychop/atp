@@ -1,6 +1,7 @@
 package com.example.atb.presentation.student_screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,67 +10,61 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.atb.domain.model.Student
+import com.example.atb.presentation.destinations.StudentDetailScreenDestination
+import com.example.atb.presentation.util.WithTopAppBar
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Destination
 @Composable
 fun StudentsScreen(
-    state: StudentScreenState,
-    navigator: DestinationsNavigator? = null
+    viewModel: StudentsViewModel = hiltViewModel(),
+    navigator: DestinationsNavigator
 ) {
-    Scaffold(
-        topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = {
-                    navigator?.popBackStack()
-                }) {
-                    Icon(
-                        imageVector = Icons.Rounded.ArrowBack,
-                        contentDescription = "Go Back"
-                    )
-                }
-                Text(
-                    text = "Registered Student",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-
-
+    StudentsListSection(state = viewModel.state.value,
+        onBackPressed = { navigator.popBackStack() },
+        onStudentItemClick = { student ->
+            navigator.navigate(StudentDetailScreenDestination(student))
         }
-    ) { paddingValues ->
+    )
 
+}
+
+@Composable
+fun StudentsListSection(
+    state: StudentScreenState,
+    onBackPressed: () -> Unit,
+    onStudentItemClick: (Student) -> Unit
+) {
+    WithTopAppBar(
+        onLeftIconClick = onBackPressed,
+        title = "All Students"
+    ) {
         Box(
-            modifier = Modifier.padding(paddingValues),
+            modifier = Modifier,
             contentAlignment = Alignment.Center
         ) {
-            LazyColumn(modifier = Modifier) {
+            LazyColumn(
+                modifier = Modifier,
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 items(state.students) { student ->
-                    StudentItem(student = student)
-                    Divider()
+                    StudentItem(
+                        student = student,
+                        onClick = onStudentItemClick
+                    )
                 }
 
             }
@@ -93,17 +88,30 @@ fun StudentsScreen(
 }
 
 @Composable
-fun StudentItem(student: Student) {
+fun StudentItem(
+    modifier: Modifier = Modifier,
+    student: Student,
+    onClick: (Student) -> Unit
+) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.scrim.copy(alpha = .2f))
+            .clickable { onClick(student) }
+            .clip(RoundedCornerShape(4.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = .2f))
             .padding(horizontal = 16.dp, vertical = 4.dp)
     ) {
-        Text(
-            text = student.name,
-            style = MaterialTheme.typography.headlineSmall
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = student.name,
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Text(text = student.barcode.toString())
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -117,7 +125,7 @@ fun StudentItem(student: Student) {
 @Preview
 @Composable
 fun StudentsPreview() {
-    StudentsScreen(
+    StudentsListSection(
         StudentScreenState(
             students = listOf(
                 Student(
@@ -137,8 +145,7 @@ fun StudentsPreview() {
                     5365
                 )
             )
-        )
-    )
+        ), {}, {})
 }
 
 /*

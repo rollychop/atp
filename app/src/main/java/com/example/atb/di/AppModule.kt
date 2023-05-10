@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import com.example.atb.data.data_source.ATBDatabase
 import com.example.atb.data.repository.ATBRepositoryImpl
+import com.example.atb.data.repository.StatsRepositoryImpl
 import com.example.atb.domain.repository.ATBRepository
 import dagger.Module
 import dagger.Provides
@@ -17,7 +18,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideNoteDatabase(app: Application): ATBDatabase {
+    fun provideATBDatabase(app: Application): ATBDatabase {
         return Room.databaseBuilder(
             app,
             ATBDatabase::class.java,
@@ -27,8 +28,16 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideNoteRepository(db: ATBDatabase): ATBRepository {
+    fun provideATBRepository(db: ATBDatabase): ATBRepository {
         return ATBRepositoryImpl(db.atbDao)
     }
+
+    @Provides
+    @Singleton
+    fun provideStatsRepository(db: ATBDatabase): StatsRepositoryImpl {
+        return StatsRepositoryImpl(db.atbDao)
+    }
+
+
 
 }

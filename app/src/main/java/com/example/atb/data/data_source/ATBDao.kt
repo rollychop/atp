@@ -32,7 +32,13 @@ interface ATBDao {
     suspend fun getAttendanceLogsByBarcode(barcode: Int): List<AttendanceLog>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAttendance(attendanceLog: AttendanceLog)
+    suspend fun insertAttendance(attendanceLog: AttendanceLog)
+
+    @Query("SELECT COUNT(*) FROM student")
+    fun numberStudent(): Flow<Int>
+
+    @Query("SELECT DISTINCT COUNT(subject) FROM attendance_log")
+    fun numberOfSubjects(): Flow<Int>
 
 
 }
